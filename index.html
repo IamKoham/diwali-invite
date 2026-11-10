@@ -319,16 +319,35 @@
   }
 
   /* ---------- tiny bang (only after a tap) ---------- */
-  function bang() {
+  let ac;
+  function noise(secs, freq, vol, when = 0) {
+    const len = ac.sampleRate * secs, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
+    for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
+    const src = ac.createBufferSource(); src.buffer = buf;
+    const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = freq;
+    const g = ac.createGain(); g.gain.value = vol;
+    src.connect(f).connect(g).connect(ac.destination); src.start(ac.currentTime + when);
+  }
+  // a boom followed by a little crackle, like a real phataka
+  function bang(vol = .7, freq = 900, crackle = false) {
     try {
-      const ac = new (window.AudioContext || window.webkitAudioContext)();
-      const len = ac.sampleRate * .6, buf = ac.createBuffer(1, len, ac.sampleRate), d = buf.getChannelData(0);
-      for (let i = 0; i < len; i++) d[i] = (Math.random() * 2 - 1) * Math.pow(1 - i / len, 4);
-      const src = ac.createBufferSource(); src.buffer = buf;
-      const f = ac.createBiquadFilter(); f.type = 'lowpass'; f.frequency.value = 900;
-      const g = ac.createGain(); g.gain.value = .7;
-      src.connect(f).connect(g).connect(ac.destination); src.start();
+      ac = ac || new (window.AudioContext || window.webkitAudioContext)();
+      if (ac.state === 'suspended') ac.resume();
+      noise(.6, freq, vol);
+      if (crackle) for (let i = 0; i < 6; i++) noise(.05, 3000 + Math.random() * 3000, vol * .35, .15 + Math.random() * .6);
     } catch (_) {}
+  }
+
+  /* ---------- full-page show ---------- */
+  function show() {
+    if (reduce) return bang();
+    for (let i = 0; i < 10; i++) {
+      setTimeout(() => {
+        burst(W * (.1 + Math.random() * .8), H * (.1 + Math.random() * .65), 120 + Math.random() * 100, 8 + Math.random() * 5);
+        bang(.45 + Math.random() * .35, 500 + Math.random() * 900, true);
+        if (i % 3 === 0) $('flash').animate([{ opacity: .3 }, { opacity: 0 }], { duration: 350, easing: 'ease-out' });
+      }, i * 230 + Math.random() * 120);
+    }
   }
 
   /* ---------- light the fuse ---------- */
@@ -373,11 +392,7 @@
   }
   $('light').addEventListener('click', light);
 
-  $('again').addEventListener('click', () => {
-    const r = $('card').getBoundingClientRect();
-    bang();
-    burst((r.left + r.width / 2) * devicePixelRatio, (r.top + 120) * devicePixelRatio, 200, 12);
-  });
+  $('again').addEventListener('click', show);
 
   /* ---------- RSVP via WhatsApp ---------- */
   let attending = null, count = 1;
