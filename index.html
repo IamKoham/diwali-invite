@@ -253,10 +253,7 @@
 
     <form id="rsvp" onsubmit="return false">
       <h2>Coming?</h2>
-      <label for="name">Your name</label>
-      <input id="name" type="text" autocomplete="name" placeholder="So we know who to thank">
-
-      <div class="choices" role="group" aria-label="Are you coming?" style="margin-top:14px">
+      <div class="choices" role="group" aria-label="Are you coming?" style="margin-top:10px">
         <button type="button" data-v="yes" aria-pressed="false">I'm in</button>
         <button type="button" data-v="maybe" aria-pressed="false">Maybe</button>
         <button type="button" data-v="no" aria-pressed="false">Can't, sadly</button>
@@ -407,19 +404,17 @@
 
   const setStatus = (m, err) => { $('status').textContent = m; $('status').className = 'status' + (err ? ' err' : ''); };
 
-  function message(name, bring) {
-    if (attending === 'no') return `Hi! It's ${name}. Can't make it to Diwali on Friday, sadly 😢 Have the best time! 🪔`;
+  function message(bring) {
+    if (attending === 'no') return `Can't make it to Diwali on Friday, sadly 😢 Have the best time! 🪔`;
     const bringing = bring ? ` Bringing ${bring}.` : '';
-    if (attending === 'maybe') return `Hi! It's ${name}. Maybe for Diwali on Friday, will confirm soon!${bringing} 🪔`;
+    if (attending === 'maybe') return `Maybe for Diwali on Friday! Will confirm soon.${bringing} 🪔`;
     const people = count > 1 ? ` We're ${count} of us.` : '';
-    return `Hi! It's ${name} 🪔 I'm in for Diwali on Friday!${people}${bringing} 🎆`;
+    return `I'm in for Diwali on Friday! 🪔${people}${bringing} 🎆`;
   }
 
   $('send').onclick = () => {
-    const name = $('name').value.trim();
-    if (!name) return setStatus('Add your name so we know who to expect.', true);
     if (!attending) return setStatus("Pick I'm in, Maybe, or Can't, sadly.", true);
-    const url = 'https://wa.me/?text=' + encodeURIComponent(message(name, $('bring').value.trim()));
+    const url = 'https://wa.me/?text=' + encodeURIComponent(message($('bring').value.trim()));
     if (attending === 'no') setStatus("We'll save you a ladoo anyway.");
     else {
       setStatus('Yay! See you Friday!');
